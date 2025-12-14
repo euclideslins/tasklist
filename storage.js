@@ -10,10 +10,12 @@ async function loadState() {
     const defaultState = {
         responsaveis: [],
         tarefas: [],
+        distribuicaoHistorico: {},
         ui: {
             modalMode: null,
             currentTaskId: null,
-            draggedTaskId: null
+            draggedTaskId: null,
+            diaSelecionado: new Date().toISOString().split('T')[0]
         }
     };
 
@@ -26,6 +28,7 @@ async function loadState() {
                 return {
                     responsaveis: data.responsaveis || [],
                     tarefas: data.tarefas || [],
+                    distribuicaoHistorico: data.distribuicaoHistorico || {},
                     ui: defaultState.ui
                 };
             }
@@ -41,6 +44,7 @@ async function loadState() {
                 return {
                     responsaveis: parsed.responsaveis || [],
                     tarefas: parsed.tarefas || [],
+                    distribuicaoHistorico: parsed.distribuicaoHistorico || {},
                     ui: defaultState.ui
                 };
             }
@@ -59,7 +63,8 @@ async function loadState() {
 function saveState(state) {
     const dataToSave = {
         responsaveis: state.responsaveis,
-        tarefas: state.tarefas
+        tarefas: state.tarefas,
+        distribuicaoHistorico: state.distribuicaoHistorico || {}
     };
 
     if (USE_FIREBASE) {
@@ -91,7 +96,8 @@ function watchStateChanges(callback) {
             if (data && callback) {
                 callback({
                     responsaveis: data.responsaveis || [],
-                    tarefas: data.tarefas || []
+                    tarefas: data.tarefas || [],
+                    distribuicaoHistorico: data.distribuicaoHistorico || {}
                 });
             }
         });
