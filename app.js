@@ -4,10 +4,12 @@
 let state = {
     responsaveis: [],
     tarefas: [],
+    distribuicaoHistorico: {}, // {tarefa: {data: responsavelId}}
     ui: {
         modalMode: null, // 'create' ou 'edit'
         currentTaskId: null,
-        draggedTaskId: null
+        draggedTaskId: null,
+        diaSelecionado: new Date().toISOString().split('T')[0]
     }
 };
 
@@ -136,9 +138,18 @@ function initEventListeners() {
     const btnGerarDiario = document.getElementById('btn-gerar-diario');
     if (btnGerarDiario) btnGerarDiario.addEventListener('click', gerarTarefasDiarias);
     
-    // Limpar Board
-    const btnLimparBoard = document.getElementById('btn-limpar-board');
-    if (btnLimparBoard) btnLimparBoard.addEventListener('click', limparBoard);
+    // Limpar Dia
+    const btnLimparDia = document.getElementById('btn-limpar-dia');
+    if (btnLimparDia) btnLimparDia.addEventListener('click', limparDia);
+    
+    // Navegação semanal
+    const btnPrevWeek = document.getElementById('prev-week');
+    const btnNextWeek = document.getElementById('next-week');
+    if (btnPrevWeek) btnPrevWeek.addEventListener('click', () => navegarSemana(-7));
+    if (btnNextWeek) btnNextWeek.addEventListener('click', () => navegarSemana(7));
+    
+    // Renderizar calendário inicial
+    renderCalendario();
 }
 
 // ========== TABS ==========
@@ -395,6 +406,7 @@ function renderAll() {
     renderSummary();
     renderResponsaveis();
     updateResponsaveisSelects();
+    renderCalendario();
     applyFilters();
 }
 
@@ -676,18 +688,76 @@ function createQuickTask(titulo) {
     renderAll();
 }
 
+// ========== CALENDÁRIO ==========
+function renderCalendario() {
+    const container = document.getElementById('week-days');
+    if (!container) return;
+    
+    const diaSelecionado = new Date(state.ui.diaSelecionado + 'T00:00:00');
+    const primeiroDia = new Date(diaSelecionado);
+    primeiroDia.setDate(primeiroDia.getDate() - primeiroDia.getDay()); // Domingo da semana
+    
+    const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    
+    let html = '';
+    for (let i = 0; i < 7; i++) {
+        const dia = new Date(primeiroDia);
+        dia.setDate(dia.getDate() + i);
+        const diaStr = dia.toISOString().split('T')[0];
+        
+        const tarefasDia = state.tarefas.filter(t => t.dataPrazo === diaStr).length;
+        const isSelected = diaStr === state.ui.diaSelecionado;
+        const isToday = diaStr === new Date().toISOString().split('T')[0];
+        
+        html += `
+            <div class="day-card ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}" 
+                 data-date="${diaStr}"
+                 onclick="selecionarDia('${diaStr}')">
+                <div class="day-name">${diasSemana[i]}</div>
+                <div class="day-number">${dia.getDate()}</div>
+                <div class="day-tasks">${tarefasDia} tarefa${tarefasDia !== 1 ? 's' : ''}</div>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
+
+function selecionarDia(data) {
+    state.ui.diaSelecionado = data;
+    renderCalendario();
+    applyFilters();
+}
+
+function navegarSemana(dias) {
+    const dataAtual = new Date(state.ui.diaSelecionado + 'T00:00:00');
+    dataAtual.setDate(dataAtual.getDate() + dias);
+    state.ui.diaSelecionado = dataAtual.toISOString().split('T')[0];
+    renderCalendario();
+    applyFilters();
+}
+
 // ========== TAREFAS DIÁRIAS ==========
 function gerarTarefasDiarias() {
     if (state.responsaveis.length === 0) {
-        showToast('error', 'Cadastre responsáveis antes de gerar tarefas diárias');
+        showToast('error', 'Cadastre responsáveis antes de gerar tarefas');
         return;
     }
     
-    if (!confirm('Gerar tarefas diárias para hoje? Isso criará ' + TAREFAS_DIARIAS.length + ' novas tarefas.')) {
-        return;
-    }
+    const diaSelecionado = state.ui.diaSelecionado;
+    const dataFormatada = formatDateBR(diaSelecionado);
     
-    const hoje = new Date().toISOString().split('T')[0];
+    // Verificar se já existem tarefas para este dia
+    const tarefasExistentes = state.tarefas.filter(t => t.dataPrazo === diaSelecionado);
+    if (tarefasExistentes.length > 0) {
+        if (!confirm(`Já existem ${tarefasExistentes.length} tarefas para ${dataFormatada}. Gerar mais ${TAREFAS_DIARIAS.length} tarefas?`)) {
+            return;
+        }
+    } else {
+        if (!confirm(`Gerar ${TAREFAS_DIARIAS.length} tarefas para ${dataFormatada}?`)) {
+            return;
+        }
+    }
     
     // Separar tarefas fixas e rotativas
     const tarefasFixas = TAREFAS_DIARIAS.filter(t => t.responsavelFixo);
@@ -696,6 +766,11 @@ function gerarTarefasDiarias() {
     // Encontrar responsáveis por nome
     const responsavelEuclides = state.responsaveis.find(r => r.nome.toLowerCase().includes('euclides'));
     const responsavelValeska = state.responsaveis.find(r => r.nome.toLowerCase().includes('valeska'));
+    
+    // Inicializar histórico se não existir
+    if (!state.distribuicaoHistorico) {
+        state.distribuicaoHistorico = {};
+    }
     
     // Criar tarefas fixas
     tarefasFixas.forEach(tarefa => {
@@ -712,8 +787,8 @@ function gerarTarefasDiarias() {
             titulo: tarefa.titulo,
             status: 'A fazer',
             responsavelId: responsavelId,
-            dataInicio: hoje,
-            dataPrazo: hoje,
+            dataInicio: diaSelecionado,
+            dataPrazo: diaSelecionado,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
@@ -721,50 +796,73 @@ function gerarTarefasDiarias() {
         state.tarefas.push(novaTarefa);
     });
     
-    // Distribuir tarefas rotativas igualitariamente
+    // Distribuir tarefas rotativas com randomização inteligente
     const responsaveisDisponiveis = state.responsaveis.slice();
-    let indiceResponsavel = 0;
+    
+    // Calcular dia anterior para evitar repetições
+    const diaAnterior = new Date(diaSelecionado + 'T00:00:00');
+    diaAnterior.setDate(diaAnterior.getDate() - 1);
+    const diaAnteriorStr = diaAnterior.toISOString().split('T')[0];
     
     tarefasRotativas.forEach(tarefa => {
-        const responsavel = responsaveisDisponiveis[indiceResponsavel];
+        // Verificar quem fez essa tarefa no dia anterior
+        const tarefaKey = tarefa.titulo;
+        const responsavelAnterior = state.distribuicaoHistorico[tarefaKey]?.[diaAnteriorStr];
+        
+        // Filtrar responsáveis disponíveis (excluir quem fez ontem)
+        let candidatos = responsaveisDisponiveis.filter(r => r.id !== responsavelAnterior);
+        
+        // Se todos fizeram ontem (improvável), usar todos
+        if (candidatos.length === 0) {
+            candidatos = responsaveisDisponiveis.slice();
+        }
+        
+        // Selecionar aleatoriamente
+        const responsavel = candidatos[Math.floor(Math.random() * candidatos.length)];
+        
+        // Registrar no histórico
+        if (!state.distribuicaoHistorico[tarefaKey]) {
+            state.distribuicaoHistorico[tarefaKey] = {};
+        }
+        state.distribuicaoHistorico[tarefaKey][diaSelecionado] = responsavel.id;
         
         const novaTarefa = {
             id: String(Date.now() + Math.random()),
             titulo: tarefa.titulo,
             status: 'A fazer',
             responsavelId: responsavel.id,
-            dataInicio: hoje,
-            dataPrazo: hoje,
+            dataInicio: diaSelecionado,
+            dataPrazo: diaSelecionado,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
         
         state.tarefas.push(novaTarefa);
-        
-        // Próximo responsável (rotação)
-        indiceResponsavel = (indiceResponsavel + 1) % responsaveisDisponiveis.length;
     });
     
     saveState(state);
-    showToast('success', `${TAREFAS_DIARIAS.length} tarefas diárias criadas com sucesso`);
+    showToast('success', `${TAREFAS_DIARIAS.length} tarefas criadas para ${dataFormatada}`);
     renderAll();
 }
 
-function limparBoard() {
-    if (state.tarefas.length === 0) {
-        showToast('warning', 'Não há tarefas para limpar');
+function limparDia() {
+    const diaSelecionado = state.ui.diaSelecionado;
+    const tarefasDia = state.tarefas.filter(t => t.dataPrazo === diaSelecionado);
+    
+    if (tarefasDia.length === 0) {
+        showToast('warning', 'Não há tarefas neste dia');
         return;
     }
     
-    const totalTarefas = state.tarefas.length;
+    const dataFormatada = formatDateBR(diaSelecionado);
     
-    if (!confirm(`Deseja realmente DELETAR TODAS as ${totalTarefas} tarefas? Esta ação não pode ser desfeita!`)) {
+    if (!confirm(`Deseja realmente DELETAR as ${tarefasDia.length} tarefas de ${dataFormatada}? Esta ação não pode ser desfeita!`)) {
         return;
     }
     
-    state.tarefas = [];
+    state.tarefas = state.tarefas.filter(t => t.dataPrazo !== diaSelecionado);
     saveState(state);
-    showToast('success', `Board limpo! ${totalTarefas} tarefas foram deletadas`);
+    showToast('success', `${tarefasDia.length} tarefas de ${dataFormatada} foram deletadas`);
     renderAll();
 }
 
@@ -910,7 +1008,8 @@ function applyFilters() {
     const filterResponsavel = document.getElementById('filter-responsavel').value;
     const filterSearch = document.getElementById('filter-search').value.toLowerCase().trim();
 
-    let tarefasFiltradas = state.tarefas;
+    // Filtrar apenas tarefas do dia selecionado
+    let tarefasFiltradas = state.tarefas.filter(t => t.dataPrazo === state.ui.diaSelecionado);
 
     if (filterResponsavel) {
         tarefasFiltradas = tarefasFiltradas.filter(t => t.responsavelId === filterResponsavel);

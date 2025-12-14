@@ -134,6 +134,92 @@ body {
     font-weight: 500;
 }
 
+/* ========== CALENDÁRIO SEMANAL ========== */
+.calendar-week {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.btn-week-nav {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-week-nav:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.btn-week-nav svg {
+    display: block;
+}
+
+.week-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    flex: 1;
+}
+
+.day-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.day-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.day-card.selected {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.day-card.today {
+    border-color: var(--success);
+    border-width: 3px;
+}
+
+.day-card.selected.today {
+    border-color: white;
+}
+
+.day-name {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    opacity: 0.8;
+}
+
+.day-number {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.day-tasks {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
 /* ========== ATIVIDADES RÁPIDAS ========== */
 .quick-tasks-panel {
     background: var(--bg-card);
@@ -895,6 +981,37 @@ body {
     
     .quick-tasks-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .calendar-week {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .week-days {
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+    }
+    
+    .day-card {
+        padding: 8px 4px;
+    }
+    
+    .day-name {
+        font-size: 10px;
+    }
+    
+    .day-number {
+        font-size: 16px;
+    }
+    
+    .day-tasks {
+        font-size: 9px;
+    }
+    
+    .btn-week-nav {
+        width: 100%;
+        padding: 12px;
     }
     
     .tabs {
