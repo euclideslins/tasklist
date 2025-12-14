@@ -471,7 +471,7 @@ body {
     align-items: center;
     gap: 6px;
     font-size: 13px;
-    color: var(--text-secondary);
+    font-weight: 600;
 }
 
 .kanban-card-responsavel svg {
@@ -729,10 +729,22 @@ body {
     align-items: center;
 }
 
+.responsavel-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.responsavel-color-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .responsavel-name {
     font-size: 15px;
     font-weight: 600;
-    color: var(--text-primary);
 }
 
 .responsavel-actions {

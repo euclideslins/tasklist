@@ -100,9 +100,15 @@ function handleResponsavelSubmit(e) {
     e.preventDefault();
     
     const nome = document.getElementById('responsavel-nome').value.trim();
+    const cor = document.getElementById('responsavel-cor').value;
     
     if (!nome) {
         showToast('error', 'Nome do responsável é obrigatório');
+        return;
+    }
+    
+    if (!cor) {
+        showToast('error', 'Selecione uma cor');
         return;
     }
 
@@ -111,6 +117,7 @@ function handleResponsavelSubmit(e) {
         const responsavel = state.responsaveis.find(r => r.id === editingResponsavel);
         if (responsavel) {
             responsavel.nome = nome;
+            responsavel.cor = cor;
             showToast('success', 'Responsável atualizado com sucesso');
         }
         editingResponsavel = null;
@@ -118,7 +125,8 @@ function handleResponsavelSubmit(e) {
         // Criar
         const novoResponsavel = {
             id: Date.now().toString(),
-            nome: nome
+            nome: nome,
+            cor: cor
         };
         state.responsaveis.push(novoResponsavel);
         showToast('success', 'Responsável cadastrado com sucesso');
@@ -136,6 +144,7 @@ function editResponsavel(id) {
 
     editingResponsavel = id;
     document.getElementById('responsavel-nome').value = responsavel.nome;
+    document.getElementById('responsavel-cor').value = responsavel.cor || '#3b82f6';
     document.getElementById('responsavel-form-title').textContent = 'Editar Responsável';
     document.getElementById('responsavel-submit-btn').textContent = 'Salvar Alterações';
     document.getElementById('responsavel-cancel-btn').style.display = 'inline-flex';
@@ -351,7 +360,10 @@ function renderResponsaveis() {
 
     container.innerHTML = state.responsaveis.map(r => `
         <div class="responsavel-item">
-            <span class="responsavel-name">${escapeHtml(r.nome)}</span>
+            <div class="responsavel-info">
+                <div class="responsavel-color-dot" style="background-color: ${r.cor || '#3b82f6'};"></div>
+                <span class="responsavel-name" style="color: ${r.cor || '#3b82f6'};">${escapeHtml(r.nome)}</span>
+            </div>
             <div class="responsavel-actions">
                 <button class="btn btn-sm btn-secondary" onclick="editResponsavel('${r.id}')">Editar</button>
                 <button class="btn btn-sm btn-danger" onclick="deleteResponsavel('${r.id}')">Excluir</button>
@@ -508,11 +520,13 @@ function createKanbanCard(tarefa, responsavel) {
         </div>
     `;
     
+    const corResponsavel = responsavel?.cor || '#64748b';
+    
     return `
         <div class="kanban-card${classeAtrasado}" draggable="true" data-task-id="${tarefa.id}">
             <div class="kanban-card-title">${escapeHtml(tarefa.titulo)}</div>
-            <div class="kanban-card-responsavel">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <div class="kanban-card-responsavel" style="color: ${corResponsavel};">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${corResponsavel}" stroke-width="2">
                     <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
                 </svg>
