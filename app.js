@@ -15,10 +15,19 @@ let state = {
 let editingResponsavel = null;
 
 // ========== INICIALIZAÇÃO ==========
-document.addEventListener('DOMContentLoaded', () => {
-    state = loadState();
+document.addEventListener('DOMContentLoaded', async () => {
+    state = await loadState();
     initEventListeners();
     renderAll();
+    
+    // Monitorar mudanças em tempo real (Firebase)
+    if (typeof watchStateChanges === 'function') {
+        watchStateChanges((newData) => {
+            state.responsaveis = newData.responsaveis;
+            state.tarefas = newData.tarefas;
+            renderAll();
+        });
+    }
 });
 
 function initEventListeners() {
