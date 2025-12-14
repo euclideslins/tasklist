@@ -64,6 +64,16 @@
                         <input type="text" id="filter-search" placeholder="Digite o título...">
                     </div>
                     <div class="filter-item">
+                        <button class="btn btn-secondary" id="toggle-quick-tasks" title="Atividades Rápidas">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="9" y1="9" x2="15" y2="9"></line>
+                                <line x1="9" y1="15" x2="15" y2="15"></line>
+                            </svg>
+                            Atividades
+                        </button>
+                    </div>
+                    <div class="filter-item">
                         <button class="btn btn-primary" id="btn-nova-tarefa">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -73,6 +83,12 @@
                         </button>
                     </div>
                 </div>
+            </div>
+
+            <!-- ATIVIDADES PRÉ-CADASTRADAS -->
+            <div id="quick-tasks-panel" class="quick-tasks-panel" style="display: none;">
+                <h3 style="margin: 0 0 12px 0; font-size: 14px; color: var(--text-secondary);">Criar tarefa rápida:</h3>
+                <div class="quick-tasks-grid"></div>
             </div>
 
             <!-- KANBAN BOARD -->

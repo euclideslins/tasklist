@@ -14,6 +14,20 @@ let state = {
 // Controle de edição de responsável
 let editingResponsavel = null;
 
+// ========== ATIVIDADES PRÉ-CADASTRADAS ==========
+const ATIVIDADES_RAPIDAS = [
+    'Lavar os pratos e talheres',
+    'Lavar as panelas',
+    'Fazer café',
+    'Fazer almoço',
+    'Fazer janta',
+    'Trocar a água dos gatos',
+    'Limpar a caixa de areia dos gatos',
+    'Aspirar a sala',
+    'Limpar o chão da cozinha',
+    'Passar aspirador no corredor'
+];
+
 // ========== INICIALIZAÇÃO ==========
 document.addEventListener('DOMContentLoaded', async () => {
     state = await loadState();
@@ -82,6 +96,10 @@ function initEventListeners() {
     if (responsavelModalCancel) responsavelModalCancel.addEventListener('click', closeResponsavelModal);
     if (responsavelModalConfirm) responsavelModalConfirm.addEventListener('click', confirmResponsavelSelection);
     if (responsavelModalOverlay) responsavelModalOverlay.addEventListener('click', closeResponsavelModal);
+    
+    // Atividades Rápidas
+    const toggleQuickTasksBtn = document.getElementById('toggle-quick-tasks');
+    if (toggleQuickTasksBtn) toggleQuickTasksBtn.addEventListener('click', toggleQuickTasksPanel);
 }
 
 // ========== TABS ==========
@@ -560,6 +578,118 @@ function quickChangeStatus(taskId, newStatus) {
     tarefa.updatedAt = new Date().toISOString();
     saveState(state);
     showToast('success', `Tarefa movida para "${newStatus}"`);
+    renderAll();
+}
+
+// ========== ATIVIDADES RÁPIDAS ==========
+function toggleQuickTasksPanel() {
+    const panel = document.getElementById('quick-tasks-panel');
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        renderQuickTasks();
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+function renderQuickTasks() {
+    const grid = document.querySelector('.quick-tasks-grid');
+    if (!grid) return;
+    
+    grid.innerHTML = ATIVIDADES_RAPIDAS.map(atividade => `
+        <button class="quick-task-btn" data-task-name="${escapeHtml(atividade)}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 11 12 14 22 4"></polyline>
+                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
+            </svg>
+            ${escapeHtml(atividade)}
+        </button>
+    `).join('');
+    
+    // Adicionar event listeners
+    grid.querySelectorAll('.quick-task-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const taskName = btn.getAttribute('data-task-name');
+            createQuickTask(taskName);
+        });
+    });
+}
+
+function createQuickTask(titulo) {
+    const hoje = new Date();
+    const amanha = new Date(hoje);
+    amanha.setDate(amanha.getDate() + 1);
+    
+    const novaTarefa = {
+        id: Date.now(),
+        titulo: titulo,
+        status: 'A fazer',
+        responsavelId: '',
+        dataInicio: '',
+        dataPrazo: amanha.toISOString().split('T')[0],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+    
+    state.tarefas.push(novaTarefa);
+    saveState(state);
+    showToast('success', `Tarefa "${titulo}" criada`);
+    renderAll();
+}
+
+// ========== ATIVIDADES RÁPIDAS ==========
+function toggleQuickTasksPanel() {
+    const panel = document.getElementById('quick-tasks-panel');
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        renderQuickTasks();
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+function renderQuickTasks() {
+    const grid = document.querySelector('.quick-tasks-grid');
+    if (!grid) return;
+    
+    grid.innerHTML = ATIVIDADES_RAPIDAS.map(atividade => `
+        <button class="quick-task-btn" data-task-name="${escapeHtml(atividade)}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 11 12 14 22 4"></polyline>
+                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
+            </svg>
+            ${escapeHtml(atividade)}
+        </button>
+    `).join('');
+    
+    // Adicionar event listeners
+    grid.querySelectorAll('.quick-task-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const taskName = btn.getAttribute('data-task-name');
+            createQuickTask(taskName);
+        });
+    });
+}
+
+function createQuickTask(titulo) {
+    const hoje = new Date();
+    const amanha = new Date(hoje);
+    amanha.setDate(amanha.getDate() + 1);
+    
+    const novaTarefa = {
+        id: Date.now(),
+        titulo: titulo,
+        status: 'A fazer',
+        responsavelId: '',
+        dataInicio: '',
+        dataPrazo: amanha.toISOString().split('T')[0],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+    
+    state.tarefas.push(novaTarefa);
+    saveState(state);
+    showToast('success', `Tarefa "${titulo}" criada`);
     renderAll();
 }
 
