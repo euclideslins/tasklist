@@ -71,6 +71,17 @@ function initEventListeners() {
     
     if (filterResponsavel) filterResponsavel.addEventListener('change', applyFilters);
     if (filterSearch) filterSearch.addEventListener('input', applyFilters);
+    
+    // Modal de Responsável
+    const responsavelModalClose = document.getElementById('responsavel-modal-close');
+    const responsavelModalCancel = document.getElementById('responsavel-modal-cancel');
+    const responsavelModalConfirm = document.getElementById('responsavel-modal-confirm');
+    const responsavelModalOverlay = document.querySelector('#responsavel-modal .modal-overlay');
+    
+    if (responsavelModalClose) responsavelModalClose.addEventListener('click', closeResponsavelModal);
+    if (responsavelModalCancel) responsavelModalCancel.addEventListener('click', closeResponsavelModal);
+    if (responsavelModalConfirm) responsavelModalConfirm.addEventListener('click', confirmResponsavelSelection);
+    if (responsavelModalOverlay) responsavelModalOverlay.addEventListener('click', closeResponsavelModal);
 }
 
 // ========== TABS ==========
@@ -259,11 +270,6 @@ function handleTaskModalSubmit(e) {
     
     if (!titulo) {
         showModalAlert('error', 'Título é obrigatório');
-        return;
-    }
-    
-    if (!responsavelId) {
-        showModalAlert('error', 'Selecione um responsável');
         return;
     }
     
@@ -520,7 +526,8 @@ function createKanbanCard(tarefa, responsavel) {
         </div>
     `;
     
-    const corResponsavel = responsavel?.cor || '#64748b';
+    const corResponsavel = responsavel?.cor || '#94a3b8';
+    const nomeResponsavel = responsavel ? escapeHtml(responsavel.nome) : '<em style="opacity: 0.7;">Sem responsável</em>';
     
     return `
         <div class="kanban-card${classeAtrasado}" draggable="true" data-task-id="${tarefa.id}">
@@ -530,7 +537,7 @@ function createKanbanCard(tarefa, responsavel) {
                     <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
                 </svg>
-                ${responsavel ? escapeHtml(responsavel.nome) : 'Não encontrado'}
+                ${nomeResponsavel}
             </div>
             ${prazoHTML}
             ${acoesHTML}
@@ -543,11 +550,71 @@ function quickChangeStatus(taskId, newStatus) {
     const tarefa = state.tarefas.find(t => t.id === taskId);
     if (!tarefa) return;
     
+    // Se não tem responsável e está mudando para Fazendo ou Concluido, solicitar responsável
+    if (!tarefa.responsavelId && (newStatus === 'Fazendo' || newStatus === 'Concluido')) {
+        openResponsavelModal(taskId, newStatus);
+        return;
+    }
+    
     tarefa.status = newStatus;
     tarefa.updatedAt = new Date().toISOString();
     saveState(state);
     showToast('success', `Tarefa movida para "${newStatus}"`);
     renderAll();
+}
+
+// ========== MODAL DE SELEÇÃO DE RESPONSÁVEL ==========
+let pendingTaskChange = null;
+
+function openResponsavelModal(taskId, newStatus) {
+    if (state.responsaveis.length === 0) {
+        showToast('warning', 'Cadastre um responsável primeiro');
+        return;
+    }
+    
+    pendingTaskChange = { taskId, newStatus };
+    
+    // Atualizar select de responsáveis
+    const select = document.getElementById('select-responsavel');
+    select.innerHTML = '<option value="">Escolha um responsável</option>' +
+        state.responsaveis.map(r => 
+            `<option value="${r.id}">${escapeHtml(r.nome)}</option>`
+        ).join('');
+    
+    const modal = document.getElementById('responsavel-modal');
+    modal.classList.add('show');
+}
+
+function closeResponsavelModal() {
+    const modal = document.getElementById('responsavel-modal');
+    modal.classList.remove('show');
+    pendingTaskChange = null;
+    document.getElementById('select-responsavel').value = '';
+}
+
+function confirmResponsavelSelection() {
+    const responsavelId = document.getElementById('select-responsavel').value;
+    
+    if (!responsavelId) {
+        showToast('error', 'Selecione um responsável');
+        return;
+    }
+    
+    if (!pendingTaskChange) return;
+    
+    const { taskId, newStatus } = pendingTaskChange;
+    const tarefa = state.tarefas.find(t => t.id === taskId);
+    
+    if (tarefa) {
+        tarefa.responsavelId = responsavelId;
+        tarefa.status = newStatus;
+        tarefa.updatedAt = new Date().toISOString();
+        saveState(state);
+        showToast('success', `Responsável atribuído e tarefa movida para "${newStatus}"`);
+        renderAll();
+    }
+    
+    closeResponsavelModal();
 }
 
 // ========== DRAG AND DROP ==========
@@ -613,6 +680,14 @@ function handleDrop(e) {
     const tarefa = state.tarefas.find(t => t.id === taskId);
     if (!tarefa) {
         console.error('Tarefa não encontrada:', taskId);
+        return;
+    }
+    
+    // Se não tem responsável e está mudando para Fazendo ou Concluido, solicitar responsável
+    if (!tarefa.responsavelId && (newStatus === 'Fazendo' || newStatus === 'Concluido')) {
+        openResponsavelModal(taskId, newStatus);
+        state.ui.draggedTaskId = null;
+        renderAll(); // Re-renderizar para voltar à posição original
         return;
     }
     

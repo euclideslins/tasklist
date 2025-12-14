@@ -198,9 +198,9 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="modal-responsavel">Responsável *</label>
-                        <select id="modal-responsavel" required>
-                            <option value="">Selecione um responsável</option>
+                        <label for="modal-responsavel">Responsável</label>
+                        <select id="modal-responsavel">
+                            <option value="">Sem responsável</option>
                         </select>
                     </div>
 
@@ -230,6 +230,35 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script src="firebase-config.js"></script>
     
+    <!-- MODAL DE SELEÇÃO DE RESPONSÁVEL -->
+    <div id="responsavel-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Atribuir Responsável</h2>
+                <button class="modal-close" id="responsavel-modal-close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div style="padding: 24px;">
+                <p style="margin-bottom: 16px; color: var(--text-secondary);">Esta tarefa precisa de um responsável antes de mudar para este status.</p>
+                <div class="form-group">
+                    <label for="select-responsavel">Selecione o responsável *</label>
+                    <select id="select-responsavel" required>
+                        <option value="">Escolha um responsável</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="responsavel-modal-cancel">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="responsavel-modal-confirm">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="storage.js"></script>
     <script src="app.js"></script>
 </body>
