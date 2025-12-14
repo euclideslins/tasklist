@@ -473,6 +473,17 @@ function createKanbanCard(tarefa, responsavel) {
         datesHTML += '</div>';
     }
     
+    // Prazo visível sempre
+    let prazoHTML = '';
+    if (tarefa.dataPrazo) {
+        const prazoTexto = atrasado ? '⚠️ ATRASADO' : '📅';
+        prazoHTML = `
+            <div class="kanban-card-prazo${classePrazo}">
+                ${prazoTexto} ${formatDateBR(tarefa.dataPrazo)}
+            </div>
+        `;
+    }
+    
     return `
         <div class="kanban-card${classeAtrasado}" draggable="true" data-task-id="${tarefa.id}">
             <div class="kanban-card-title">${escapeHtml(tarefa.titulo)}</div>
@@ -483,7 +494,7 @@ function createKanbanCard(tarefa, responsavel) {
                 </svg>
                 ${responsavel ? escapeHtml(responsavel.nome) : 'Não encontrado'}
             </div>
-            ${datesHTML}
+            ${prazoHTML}
         </div>
     `;
 }
