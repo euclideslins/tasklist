@@ -260,9 +260,13 @@ function openTaskModal(mode, taskId = null) {
         deleteBtn.style.display = 'none';
         document.getElementById('modal-status').value = 'A fazer';
     } else if (mode === 'edit' && taskId) {
-        const tarefa = state.tarefas.find(t => t.id === taskId);
+        console.log('Procurando tarefa com ID:', taskId, 'Type:', typeof taskId);
+        console.log('IDs disponíveis:', state.tarefas.map(t => ({ id: t.id, type: typeof t.id, titulo: t.titulo })));
+        
+        const tarefa = state.tarefas.find(t => String(t.id) === String(taskId));
         if (!tarefa) {
             console.error('Tarefa não encontrada:', taskId);
+            console.error('Tentou comparar com:', state.tarefas.map(t => t.id));
             return;
         }
         
@@ -821,7 +825,7 @@ function handleDrop(e) {
     const taskId = state.ui.draggedTaskId;
     
     console.log('Drop - TaskID:', taskId, 'Novo Status:', newStatus, 'Type:', typeof taskId);
-    console.log('Todas tarefas:', state.tarefas.map(t => ({ id: t.id, type: typeof t.id })));
+    console.log('Todas tarefas:', state.tarefas.map(t => ({ id: t.id, type: typeof t.id, titulo: t.titulo })));
     
     if (!taskId) {
         console.error('TaskId não encontrado no estado');
