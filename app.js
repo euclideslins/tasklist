@@ -41,6 +41,24 @@ const ATIVIDADES_RAPIDAS = [
     'Sabão e pote de sobras'
 ];
 
+// ========== TAREFAS DIÁRIAS ==========
+const TAREFAS_DIARIAS = [
+    { titulo: 'Lavar panelas', responsavelFixo: null },
+    { titulo: 'Lavar potes', responsavelFixo: null },
+    { titulo: 'Lavar travessas', responsavelFixo: null },
+    { titulo: 'Aspirar Sala', responsavelFixo: null },
+    { titulo: 'Aspirar Corredor', responsavelFixo: null },
+    { titulo: 'Varrer chão da cozinha', responsavelFixo: null },
+    { titulo: 'Passar pano chão da cozinha', responsavelFixo: null },
+    { titulo: 'Passar pano chão da sala', responsavelFixo: null },
+    { titulo: 'Limpar as mesas', responsavelFixo: null },
+    { titulo: 'Fazer almoço', responsavelFixo: 'Euclides' },
+    { titulo: 'Limpar vaso com lysoform e papel', responsavelFixo: null },
+    { titulo: 'Recolher os lixos', responsavelFixo: null },
+    { titulo: 'Descer com os lixos', responsavelFixo: 'Euclides' },
+    { titulo: 'Lavar roupas', responsavelFixo: 'Valeska' }
+];
+
 // ========== INICIALIZAÇÃO ==========
 document.addEventListener('DOMContentLoaded', async () => {
     state = await loadState();
@@ -113,6 +131,14 @@ function initEventListeners() {
     // Atividades Rápidas
     const toggleQuickTasksBtn = document.getElementById('toggle-quick-tasks');
     if (toggleQuickTasksBtn) toggleQuickTasksBtn.addEventListener('click', toggleQuickTasksPanel);
+    
+    // Gerar Tarefas Diárias
+    const btnGerarDiario = document.getElementById('btn-gerar-diario');
+    if (btnGerarDiario) btnGerarDiario.addEventListener('click', gerarTarefasDiarias);
+    
+    // Limpar Board
+    const btnLimparBoard = document.getElementById('btn-limpar-board');
+    if (btnLimparBoard) btnLimparBoard.addEventListener('click', limparBoard);
 }
 
 // ========== TABS ==========
@@ -647,6 +673,98 @@ function createQuickTask(titulo) {
     state.tarefas.push(novaTarefa);
     saveState(state);
     showToast('success', `Tarefa "${titulo}" criada`);
+    renderAll();
+}
+
+// ========== TAREFAS DIÁRIAS ==========
+function gerarTarefasDiarias() {
+    if (state.responsaveis.length === 0) {
+        showToast('error', 'Cadastre responsáveis antes de gerar tarefas diárias');
+        return;
+    }
+    
+    if (!confirm('Gerar tarefas diárias para hoje? Isso criará ' + TAREFAS_DIARIAS.length + ' novas tarefas.')) {
+        return;
+    }
+    
+    const hoje = new Date().toISOString().split('T')[0];
+    
+    // Separar tarefas fixas e rotativas
+    const tarefasFixas = TAREFAS_DIARIAS.filter(t => t.responsavelFixo);
+    const tarefasRotativas = TAREFAS_DIARIAS.filter(t => !t.responsavelFixo);
+    
+    // Encontrar responsáveis por nome
+    const responsavelEuclides = state.responsaveis.find(r => r.nome.toLowerCase().includes('euclides'));
+    const responsavelValeska = state.responsaveis.find(r => r.nome.toLowerCase().includes('valeska'));
+    
+    // Criar tarefas fixas
+    tarefasFixas.forEach(tarefa => {
+        let responsavelId = '';
+        
+        if (tarefa.responsavelFixo === 'Euclides' && responsavelEuclides) {
+            responsavelId = responsavelEuclides.id;
+        } else if (tarefa.responsavelFixo === 'Valeska' && responsavelValeska) {
+            responsavelId = responsavelValeska.id;
+        }
+        
+        const novaTarefa = {
+            id: String(Date.now() + Math.random()),
+            titulo: tarefa.titulo,
+            status: 'A fazer',
+            responsavelId: responsavelId,
+            dataInicio: hoje,
+            dataPrazo: hoje,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        state.tarefas.push(novaTarefa);
+    });
+    
+    // Distribuir tarefas rotativas igualitariamente
+    const responsaveisDisponiveis = state.responsaveis.slice();
+    let indiceResponsavel = 0;
+    
+    tarefasRotativas.forEach(tarefa => {
+        const responsavel = responsaveisDisponiveis[indiceResponsavel];
+        
+        const novaTarefa = {
+            id: String(Date.now() + Math.random()),
+            titulo: tarefa.titulo,
+            status: 'A fazer',
+            responsavelId: responsavel.id,
+            dataInicio: hoje,
+            dataPrazo: hoje,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        state.tarefas.push(novaTarefa);
+        
+        // Próximo responsável (rotação)
+        indiceResponsavel = (indiceResponsavel + 1) % responsaveisDisponiveis.length;
+    });
+    
+    saveState(state);
+    showToast('success', `${TAREFAS_DIARIAS.length} tarefas diárias criadas com sucesso`);
+    renderAll();
+}
+
+function limparBoard() {
+    if (state.tarefas.length === 0) {
+        showToast('warning', 'Não há tarefas para limpar');
+        return;
+    }
+    
+    const totalTarefas = state.tarefas.length;
+    
+    if (!confirm(`Deseja realmente DELETAR TODAS as ${totalTarefas} tarefas? Esta ação não pode ser desfeita!`)) {
+        return;
+    }
+    
+    state.tarefas = [];
+    saveState(state);
+    showToast('success', `Board limpo! ${totalTarefas} tarefas foram deletadas`);
     renderAll();
 }
 
