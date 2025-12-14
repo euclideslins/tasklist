@@ -16,16 +16,29 @@ let editingResponsavel = null;
 
 // ========== ATIVIDADES PRÉ-CADASTRADAS ==========
 const ATIVIDADES_RAPIDAS = [
-    'Lavar os pratos e talheres',
-    'Lavar as panelas',
-    'Fazer café',
-    'Fazer almoço',
-    'Fazer janta',
-    'Trocar a água dos gatos',
-    'Limpar a caixa de areia dos gatos',
-    'Aspirar a sala',
-    'Limpar o chão da cozinha',
-    'Passar aspirador no corredor'
+    'Lavar panelas (potes/travessas)',
+    'Aspirar sala, corredor',
+    'Varrer chão da cozinha',
+    'Passar pano - chão da cozinha',
+    'Passar pano - chão da sala',
+    'Passar pano - corredor',
+    'Passar pano - lavanderia',
+    'Limpar a mesa 1 e 2 (Sala e Cozinha)',
+    'Fazer marmita de proteína',
+    'Lavar banheiro',
+    'Limpar vaso com Lysform e papel',
+    'Aspirar lavanderia',
+    'Recolher o lixo',
+    'Fazer Dezer o lixo (grande)',
+    'Lavar saladas e frutas',
+    'Limpar dentro e fora da geladeira',
+    'Passar dezel nas tomadas',
+    'Lavar roupas',
+    'Limpar fogão (superfície)',
+    'Cada um lava sua roupa',
+    'Cada um lava sua própria cabeça/corpo',
+    'Repor papel higiênico e sabonetes',
+    'Sabão e pote de sobras'
 ];
 
 // ========== INICIALIZAÇÃO ==========
