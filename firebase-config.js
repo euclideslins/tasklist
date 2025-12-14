@@ -1,14 +1,13 @@
 // firebase-config.js - Configuração do Firebase
-// IMPORTANTE: Você precisa criar um projeto no Firebase Console
 
 const firebaseConfig = {
-    apiKey: "SUA_API_KEY_AQUI",
-    authDomain: "SEU_PROJETO.firebaseapp.com",
-    databaseURL: "https://SEU_PROJETO-default-rtdb.firebaseio.com",
-    projectId: "SEU_PROJETO",
-    storageBucket: "SEU_PROJETO.appspot.com",
-    messagingSenderId: "SEU_ID",
-    appId: "SEU_APP_ID"
+    apiKey: "AIzaSyAPdkJBA5iu4jo6ZlBfsb5RlFKQEBNWLG4",
+    authDomain: "tasklist-be3ae.firebaseapp.com",
+    databaseURL: "https://tasklist-be3ae-default-rtdb.firebaseio.com",
+    projectId: "tasklist-be3ae",
+    storageBucket: "tasklist-be3ae.firebasestorage.app",
+    messagingSenderId: "1053181368290",
+    appId: "1:1053181368290:web:1764934e01e480d6390bbb"
 };
 
 // Inicializar Firebase
