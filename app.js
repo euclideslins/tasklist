@@ -578,12 +578,18 @@ function createKanbanCard(tarefa, responsavel) {
 
 // ========== MUDANÇA RÁPIDA DE STATUS ==========
 function quickChangeStatus(taskId, newStatus) {
-    const tarefa = state.tarefas.find(t => t.id === taskId);
-    if (!tarefa) return;
+    console.log('quickChangeStatus chamado:', { taskId, newStatus, type: typeof taskId });
+    console.log('Tarefas disponíveis:', state.tarefas.map(t => ({ id: t.id, type: typeof t.id })));
+    
+    const tarefa = state.tarefas.find(t => String(t.id) === String(taskId));
+    if (!tarefa) {
+        console.error('Tarefa não encontrada:', taskId);
+        return;
+    }
     
     // Se não tem responsável e está mudando para Fazendo ou Concluido, solicitar responsável
     if (!tarefa.responsavelId && (newStatus === 'Fazendo' || newStatus === 'Concluido')) {
-        openResponsavelModal(taskId, newStatus);
+        openResponsavelModal(String(taskId), newStatus);
         return;
     }
     
@@ -768,7 +774,8 @@ function setupCardDragAndDrop(card) {
 
 function handleDragStart(e) {
     const taskId = e.currentTarget.dataset.taskId;
-    state.ui.draggedTaskId = taskId;
+    console.log('handleDragStart:', { taskId, type: typeof taskId });
+    state.ui.draggedTaskId = String(taskId);
     e.currentTarget.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', taskId);
@@ -813,16 +820,18 @@ function handleDrop(e) {
     const newStatus = column.dataset.status;
     const taskId = state.ui.draggedTaskId;
     
-    console.log('Drop - TaskID:', taskId, 'Novo Status:', newStatus);
+    console.log('Drop - TaskID:', taskId, 'Novo Status:', newStatus, 'Type:', typeof taskId);
+    console.log('Todas tarefas:', state.tarefas.map(t => ({ id: t.id, type: typeof t.id })));
     
     if (!taskId) {
         console.error('TaskId não encontrado no estado');
         return;
     }
     
-    const tarefa = state.tarefas.find(t => t.id === taskId);
+    const tarefa = state.tarefas.find(t => String(t.id) === String(taskId));
     if (!tarefa) {
         console.error('Tarefa não encontrada:', taskId);
+        console.error('IDs disponíveis:', state.tarefas.map(t => t.id));
         return;
     }
     
