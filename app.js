@@ -690,7 +690,7 @@ function createQuickTask(titulo) {
     amanha.setDate(amanha.getDate() + 1);
     
     const novaTarefa = {
-        id: Date.now(),
+        id: String(Date.now()),
         titulo: titulo,
         status: 'A fazer',
         responsavelId: '',
