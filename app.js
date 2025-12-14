@@ -223,6 +223,8 @@ function openTaskModal(mode, taskId = null) {
         document.getElementById('modal-descricao').value = tarefa.descricao || '';
         document.getElementById('modal-responsavel').value = tarefa.responsavelId || '';
         document.getElementById('modal-status').value = tarefa.status || 'A fazer';
+        document.getElementById('modal-data-inicio').value = tarefa.dataInicio || '';
+        document.getElementById('modal-data-prazo').value = tarefa.dataPrazo || '';
     }
     
     console.log('Abrindo modal...');
@@ -243,6 +245,8 @@ function handleTaskModalSubmit(e) {
     const descricao = document.getElementById('modal-descricao').value.trim();
     const responsavelId = document.getElementById('modal-responsavel').value;
     const status = document.getElementById('modal-status').value;
+    const dataInicio = document.getElementById('modal-data-inicio').value;
+    const dataPrazo = document.getElementById('modal-data-prazo').value;
     
     if (!titulo) {
         showModalAlert('error', 'Título é obrigatório');
@@ -251,6 +255,11 @@ function handleTaskModalSubmit(e) {
     
     if (!responsavelId) {
         showModalAlert('error', 'Selecione um responsável');
+        return;
+    }
+    
+    if (!dataPrazo) {
+        showModalAlert('error', 'Prazo é obrigatório');
         return;
     }
     
@@ -263,6 +272,8 @@ function handleTaskModalSubmit(e) {
             tarefa.descricao = descricao;
             tarefa.responsavelId = responsavelId;
             tarefa.status = status;
+            tarefa.dataInicio = dataInicio;
+            tarefa.dataPrazo = dataPrazo;
             tarefa.updatedAt = now;
             showToast('success', 'Tarefa atualizada com sucesso');
         }
@@ -273,6 +284,8 @@ function handleTaskModalSubmit(e) {
             descricao,
             responsavelId,
             status,
+            dataInicio,
+            dataPrazo,
             createdAt: now,
             updatedAt: now
         };
@@ -410,8 +423,58 @@ function renderBoard(tarefas) {
 
 // ========== KANBAN CARD ==========
 function createKanbanCard(tarefa, responsavel) {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    
+    let atrasado = false;
+    let classeAtrasado = '';
+    let classePrazo = '';
+    
+    if (tarefa.dataPrazo) {
+        const prazo = new Date(tarefa.dataPrazo + 'T00:00:00');
+        if (prazo < hoje && tarefa.status !== 'Concluido') {
+            atrasado = true;
+            classeAtrasado = ' atrasado';
+            classePrazo = ' atrasado';
+        }
+    }
+    
+    let datesHTML = '';
+    if (tarefa.dataInicio || tarefa.dataPrazo) {
+        datesHTML = '<div class="kanban-card-dates">';
+        
+        if (tarefa.dataInicio) {
+            datesHTML += `
+                <div class="kanban-card-date">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    Início: ${formatDateBR(tarefa.dataInicio)}
+                </div>
+            `;
+        }
+        
+        if (tarefa.dataPrazo) {
+            const prazoTexto = atrasado ? 'ATRASADO!' : 'Prazo';
+            datesHTML += `
+                <div class="kanban-card-date prazo${classePrazo}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    ${prazoTexto}: ${formatDateBR(tarefa.dataPrazo)}
+                </div>
+            `;
+        }
+        
+        datesHTML += '</div>';
+    }
+    
     return `
-        <div class="kanban-card" draggable="true" data-task-id="${tarefa.id}">
+        <div class="kanban-card${classeAtrasado}" draggable="true" data-task-id="${tarefa.id}">
             <div class="kanban-card-title">${escapeHtml(tarefa.titulo)}</div>
             <div class="kanban-card-responsavel">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -420,6 +483,7 @@ function createKanbanCard(tarefa, responsavel) {
                 </svg>
                 ${responsavel ? escapeHtml(responsavel.nome) : 'Não encontrado'}
             </div>
+            ${datesHTML}
         </div>
     `;
 }
@@ -531,6 +595,12 @@ function formatDate(isoString) {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${day}/${month}/${year} ${hours}:${minutes}`;
+}
+
+function formatDateBR(dateString) {
+    if (!dateString) return '';
+    const [year, month, day] = dateString.split('-');
+    return `${day}/${month}/${year}`;
 }
 
 function escapeHtml(text) {
