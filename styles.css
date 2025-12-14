@@ -396,6 +396,26 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    max-height: 500px;
+    min-height: 500px;
+}
+
+.kanban-column-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.kanban-column-content::-webkit-scrollbar-track {
+    background: var(--bg-body);
+    border-radius: 3px;
+}
+
+.kanban-column-content::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+}
+
+.kanban-column-content::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary);
 }
 
 .kanban-column-content.drag-over {
@@ -474,6 +494,45 @@ body {
     background: rgba(239, 68, 68, 0.15);
     color: var(--danger);
     font-weight: 700;
+}
+
+/* Botões rápidos mobile */
+.kanban-card-actions {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.kanban-card-actions .btn-quick {
+    flex: 1;
+    min-width: 70px;
+    padding: 6px 10px;
+    font-size: 11px;
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+}
+
+.kanban-card-actions .btn-quick:hover {
+    background: var(--bg-body);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+@media (max-width: 900px) {
+    .kanban-card-actions {
+        display: flex;
+    }
+    
+    .kanban-card {
+        padding: 16px;
+    }
 }
 
 .kanban-card-dates {
@@ -716,17 +775,19 @@ body {
         grid-template-columns: 1fr;
     }
     
-    /* Kanban em modo scroll horizontal */
+    /* Kanban mobile: colunas empilhadas */
     .kanban-board {
-        grid-template-columns: repeat(3, 280px);
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        padding-bottom: 16px;
+        grid-template-columns: 1fr;
+        gap: 16px;
     }
     
     .kanban-column {
-        scroll-snap-align: start;
-        min-width: 280px;
+        min-height: auto;
+    }
+    
+    .kanban-column-content {
+        max-height: 300px;
+        min-height: 200px;
     }
 }
 
@@ -796,15 +857,23 @@ body {
         max-width: none;
     }
     
-    /* Kanban mobile */
+    /* Kanban mobile pequeno */
     .kanban-board {
-        grid-template-columns: repeat(3, 260px);
+        grid-template-columns: 1fr;
         gap: 12px;
     }
     
     .kanban-column {
-        min-width: 260px;
-        min-height: 400px;
+        min-height: auto;
+    }
+    
+    .kanban-column-content {
+        max-height: 250px;
+        min-height: 150px;
+    }
+    
+    .kanban-column-header h3 {
+        font-size: 14px;
     }
     
     .modal-content {

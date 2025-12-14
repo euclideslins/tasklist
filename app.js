@@ -411,8 +411,18 @@ function renderBoard(tarefas) {
         column.querySelectorAll('.kanban-card').forEach(card => {
             setupCardDragAndDrop(card);
             card.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openTaskModal('edit', card.dataset.taskId);
+                // No mobile, só abre modal se clicar no título
+                if (window.innerWidth <= 900) {
+                    const clickedTitle = e.target.classList.contains('kanban-card-title');
+                    if (clickedTitle) {
+                        e.stopPropagation();
+                        openTaskModal('edit', card.dataset.taskId);
+                    }
+                } else {
+                    // Desktop: abre normalmente
+                    e.stopPropagation();
+                    openTaskModal('edit', card.dataset.taskId);
+                }
             });
         });
     });
@@ -484,6 +494,20 @@ function createKanbanCard(tarefa, responsavel) {
         `;
     }
     
+    // Botões rápidos de ação (visíveis no mobile)
+    const statuses = ['A fazer', 'Fazendo', 'Concluido'];
+    const botoesStatus = statuses
+        .filter(s => s !== tarefa.status)
+        .map(s => `<button class="btn-quick" onclick="quickChangeStatus('${tarefa.id}', '${s}'); event.stopPropagation();">${s}</button>`)
+        .join('');
+    
+    const acoesHTML = `
+        <div class="kanban-card-actions">
+            ${botoesStatus}
+            <button class="btn-quick" onclick="openTaskModal('edit', '${tarefa.id}'); event.stopPropagation();">Editar</button>
+        </div>
+    `;
+    
     return `
         <div class="kanban-card${classeAtrasado}" draggable="true" data-task-id="${tarefa.id}">
             <div class="kanban-card-title">${escapeHtml(tarefa.titulo)}</div>
@@ -495,8 +519,21 @@ function createKanbanCard(tarefa, responsavel) {
                 ${responsavel ? escapeHtml(responsavel.nome) : 'Não encontrado'}
             </div>
             ${prazoHTML}
+            ${acoesHTML}
         </div>
     `;
+}
+
+// ========== MUDANÇA RÁPIDA DE STATUS ==========
+function quickChangeStatus(taskId, newStatus) {
+    const tarefa = state.tarefas.find(t => t.id === taskId);
+    if (!tarefa) return;
+    
+    tarefa.status = newStatus;
+    tarefa.updatedAt = new Date().toISOString();
+    saveState(state);
+    showToast('success', `Tarefa movida para "${newStatus}"`);
+    renderAll();
 }
 
 // ========== DRAG AND DROP ==========
