@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Tarefas - Gerenciador</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="toast" class="toast"></div>
+
+    <div class="container">
+        <header class="header">
+            <h1>Gerenciador de Tarefas</h1>
+            <div class="summary">
+                <div class="summary-card">
+                    <span class="summary-number" id="total-tarefas">0</span>
+                    <span class="summary-label">Total</span>
+                </div>
+                <div class="summary-card">
+                    <span class="summary-number" id="total-afazer">0</span>
+                    <span class="summary-label">A fazer</span>
+                </div>
+                <div class="summary-card">
+                    <span class="summary-number" id="total-fazendo">0</span>
+                    <span class="summary-label">Fazendo</span>
+                </div>
+                <div class="summary-card">
+                    <span class="summary-number" id="total-concluido">0</span>
+                    <span class="summary-label">Concluído</span>
+                </div>
+            </div>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="tarefas">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 11l3 3L22 4"></path>
+                    <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
+                </svg>
+                Tarefas
+            </button>
+            <button class="tab-btn" data-tab="responsaveis">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Responsáveis
+            </button>
+        </nav>
+
+        <!-- TAB: TAREFAS -->
+        <div id="tarefas-tab" class="tab-content active">
+            <div class="filters-card">
+                <div class="filters">
+                    <div class="filter-item">
+                        <label for="filter-responsavel">Responsável</label>
+                        <select id="filter-responsavel">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="filter-item filter-search">
+                        <label for="filter-search">Buscar</label>
+                        <input type="text" id="filter-search" placeholder="Digite o título...">
+                    </div>
+                    <div class="filter-item">
+                        <button class="btn btn-primary" id="btn-nova-tarefa">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Nova Tarefa
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KANBAN BOARD -->
+            <div class="kanban-board">
+                <div class="kanban-column" data-status="A fazer">
+                    <div class="kanban-column-header">
+                        <h3>A fazer</h3>
+                        <span class="kanban-count" id="count-afazer">0</span>
+                    </div>
+                    <div class="kanban-column-content" id="column-afazer">
+                        <div class="empty-column">Nenhuma tarefa</div>
+                    </div>
+                </div>
+
+                <div class="kanban-column" data-status="Fazendo">
+                    <div class="kanban-column-header">
+                        <h3>Fazendo</h3>
+                        <span class="kanban-count" id="count-fazendo">0</span>
+                    </div>
+                    <div class="kanban-column-content" id="column-fazendo">
+                        <div class="empty-column">Nenhuma tarefa</div>
+                    </div>
+                </div>
+
+                <div class="kanban-column" data-status="Concluido">
+                    <div class="kanban-column-header">
+                        <h3>Concluído</h3>
+                        <span class="kanban-count" id="count-concluido">0</span>
+                    </div>
+                    <div class="kanban-column-content" id="column-concluido">
+                        <div class="empty-column">Nenhuma tarefa</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: RESPONSÁVEIS -->
+        <div id="responsaveis-tab" class="tab-content">
+            <div class="card">
+                <h2 id="responsavel-form-title">Novo Responsável</h2>
+                <form id="responsavel-form">
+                    <input type="hidden" id="responsavel-id">
+                    
+                    <div class="form-group">
+                        <label for="responsavel-nome">Nome *</label>
+                        <input type="text" id="responsavel-nome" placeholder="Digite o nome do responsável" required>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="responsavel-submit-btn">
+                            Adicionar Responsável
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="responsavel-cancel-btn" style="display: none;">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Lista de Responsáveis</h2>
+                <div class="responsaveis-list" id="responsaveis-list">
+                    <div class="empty-state">Nenhum responsável cadastrado</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE TAREFA -->
+    <div id="task-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Nova Tarefa</h2>
+                <button class="modal-close" id="modal-close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form id="task-modal-form">
+                <input type="hidden" id="modal-task-id">
+                
+                <div class="form-group">
+                    <label for="modal-titulo">Título *</label>
+                    <input type="text" id="modal-titulo" placeholder="Digite o título da tarefa" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="modal-descricao">Descrição</label>
+                    <textarea id="modal-descricao" rows="4" placeholder="Descreva os detalhes da tarefa (opcional)"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="modal-responsavel">Responsável *</label>
+                        <select id="modal-responsavel" required>
+                            <option value="">Selecione um responsável</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="modal-status">Status *</label>
+                        <select id="modal-status" required>
+                            <option value="A fazer">A fazer</option>
+                            <option value="Fazendo">Fazendo</option>
+                            <option value="Concluido">Concluido</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-alert" id="modal-alert"></div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="modal-cancel-btn">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="modal-delete-btn" style="display: none;">Excluir</button>
+                    <button type="submit" class="btn btn-primary" id="modal-submit-btn">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="storage.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
