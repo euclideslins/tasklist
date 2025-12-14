@@ -219,8 +219,6 @@ function cancelResponsavelEdit() {
 
 // ========== MODAL DE TAREFA ==========
 function openTaskModal(mode, taskId = null) {
-    console.log('openTaskModal chamado:', mode, taskId);
-    
     state.ui.modalMode = mode;
     state.ui.currentTaskId = taskId;
     
@@ -260,13 +258,9 @@ function openTaskModal(mode, taskId = null) {
         deleteBtn.style.display = 'none';
         document.getElementById('modal-status').value = 'A fazer';
     } else if (mode === 'edit' && taskId) {
-        console.log('Procurando tarefa com ID:', taskId, 'Type:', typeof taskId);
-        console.log('IDs disponíveis:', state.tarefas.map(t => ({ id: t.id, type: typeof t.id, titulo: t.titulo })));
-        
         const tarefa = state.tarefas.find(t => String(t.id) === String(taskId));
         if (!tarefa) {
             console.error('Tarefa não encontrada:', taskId);
-            console.error('Tentou comparar com:', state.tarefas.map(t => t.id));
             return;
         }
         
@@ -282,7 +276,6 @@ function openTaskModal(mode, taskId = null) {
         document.getElementById('modal-data-prazo').value = tarefa.dataPrazo || '';
     }
     
-    console.log('Abrindo modal...');
     modal.classList.add('show');
 }
 
@@ -582,9 +575,6 @@ function createKanbanCard(tarefa, responsavel) {
 
 // ========== MUDANÇA RÁPIDA DE STATUS ==========
 function quickChangeStatus(taskId, newStatus) {
-    console.log('quickChangeStatus chamado:', { taskId, newStatus, type: typeof taskId });
-    console.log('Tarefas disponíveis:', state.tarefas.map(t => ({ id: t.id, type: typeof t.id })));
-    
     const tarefa = state.tarefas.find(t => String(t.id) === String(taskId));
     if (!tarefa) {
         console.error('Tarefa não encontrada:', taskId);
@@ -601,62 +591,6 @@ function quickChangeStatus(taskId, newStatus) {
     tarefa.updatedAt = new Date().toISOString();
     saveState(state);
     showToast('success', `Tarefa movida para "${newStatus}"`);
-    renderAll();
-}
-
-// ========== ATIVIDADES RÁPIDAS ==========
-function toggleQuickTasksPanel() {
-    const panel = document.getElementById('quick-tasks-panel');
-    if (panel.style.display === 'none') {
-        panel.style.display = 'block';
-        renderQuickTasks();
-    } else {
-        panel.style.display = 'none';
-    }
-}
-
-function renderQuickTasks() {
-    const grid = document.querySelector('.quick-tasks-grid');
-    if (!grid) return;
-    
-    grid.innerHTML = ATIVIDADES_RAPIDAS.map(atividade => `
-        <button class="quick-task-btn" data-task-name="${escapeHtml(atividade)}">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9 11 12 14 22 4"></polyline>
-                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
-            </svg>
-            ${escapeHtml(atividade)}
-        </button>
-    `).join('');
-    
-    // Adicionar event listeners
-    grid.querySelectorAll('.quick-task-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const taskName = btn.getAttribute('data-task-name');
-            createQuickTask(taskName);
-        });
-    });
-}
-
-function createQuickTask(titulo) {
-    const hoje = new Date();
-    const amanha = new Date(hoje);
-    amanha.setDate(amanha.getDate() + 1);
-    
-    const novaTarefa = {
-        id: Date.now(),
-        titulo: titulo,
-        status: 'A fazer',
-        responsavelId: '',
-        dataInicio: '',
-        dataPrazo: amanha.toISOString().split('T')[0],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    };
-    
-    state.tarefas.push(novaTarefa);
-    saveState(state);
-    showToast('success', `Tarefa "${titulo}" criada`);
     renderAll();
 }
 
@@ -756,7 +690,7 @@ function confirmResponsavelSelection() {
     if (!pendingTaskChange) return;
     
     const { taskId, newStatus } = pendingTaskChange;
-    const tarefa = state.tarefas.find(t => t.id === taskId);
+    const tarefa = state.tarefas.find(t => String(t.id) === String(taskId));
     
     if (tarefa) {
         tarefa.responsavelId = responsavelId;
@@ -778,7 +712,6 @@ function setupCardDragAndDrop(card) {
 
 function handleDragStart(e) {
     const taskId = e.currentTarget.dataset.taskId;
-    console.log('handleDragStart:', { taskId, type: typeof taskId });
     state.ui.draggedTaskId = String(taskId);
     e.currentTarget.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
@@ -824,9 +757,6 @@ function handleDrop(e) {
     const newStatus = column.dataset.status;
     const taskId = state.ui.draggedTaskId;
     
-    console.log('Drop - TaskID:', taskId, 'Novo Status:', newStatus, 'Type:', typeof taskId);
-    console.log('Todas tarefas:', state.tarefas.map(t => ({ id: t.id, type: typeof t.id, titulo: t.titulo })));
-    
     if (!taskId) {
         console.error('TaskId não encontrado no estado');
         return;
@@ -835,7 +765,6 @@ function handleDrop(e) {
     const tarefa = state.tarefas.find(t => String(t.id) === String(taskId));
     if (!tarefa) {
         console.error('Tarefa não encontrada:', taskId);
-        console.error('IDs disponíveis:', state.tarefas.map(t => t.id));
         return;
     }
     
@@ -848,7 +777,6 @@ function handleDrop(e) {
     }
     
     if (tarefa.status !== newStatus) {
-        console.log('Atualizando status de', tarefa.status, 'para', newStatus);
         tarefa.status = newStatus;
         tarefa.updatedAt = new Date().toISOString();
         saveState(state);
